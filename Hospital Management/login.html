@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Login — MediCore Hospital System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --navy: #0a1628; --navy-mid: #112240; --navy-light: #1a3461;
+  --teal: #0e9f8c; --teal-l: #12c5ae; --teal-glow: rgba(14,159,140,.18);
+  --rose: #f43f5e;
+  --white: #f8fafc; --g100: #f1f5f9; --g200: #e2e8f0;
+  --g400: #94a3b8; --g600: #475569; --text: #0f172a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  overflow: hidden;
+}
+
+/* ── LOGIN CARD ── */
+.login-card {
+  background: #fff;
+  width: 100%;
+  max-width: 380px;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  animation: slideUp 0.5s ease both;
+  margin: 20px;
+}
+
+.login-logo { text-align: center; margin-bottom: 30px; }
+.login-logo .bicon { 
+  margin: 0 auto; width: 60px; height: 60px; font-size: 28px; 
+  border-radius: 14px; background: linear-gradient(135deg, var(--teal), var(--teal-l));
+  display: grid; place-items: center; color: #fff;
+  box-shadow: 0 0 20px var(--teal-glow);
+}
+.login-logo .bname { 
+  font-family: 'Syne', sans-serif; font-weight: 800; color: var(--navy); 
+  font-size: 24px; margin-top: 14px; line-height: 1; 
+}
+.login-logo .bsub { 
+  font-size: 11px; color: var(--g400); letter-spacing: 1.5px; 
+  text-transform: uppercase; margin-top: 6px; 
+}
+
+/* ── FORMS & BUTTONS ── */
+.fgrid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+label { font-size: 11px; font-weight: 600; color: var(--g600); text-transform: uppercase; letter-spacing: .6px; }
+
+input {
+  padding: 10px 13px; border: 1.5px solid var(--g200); border-radius: 9px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+  background: var(--white); transition: border-color .2s, box-shadow .2s; outline: none; width: 100%;
+}
+input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 12px;
+  border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 15px;
+  font-weight: 500; cursor: pointer; border: none; transition: all .2s;
+  justify-content: center; width: 100%; margin-top: 24px;
+}
+.btn-p { background: var(--teal); color: #fff; }
+.btn-p:hover { background: var(--teal-l); box-shadow: 0 4px 16px var(--teal-glow); }
+
+.login-footer { text-align: center; margin-top: 24px; font-size: 12px; color: var(--g400); }
+.login-footer b { color: var(--navy); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: #fff;
+  padding: 13px 18px; border-radius: 12px; font-size: 13.5px; z-index: 300;
+  transform: translateY(80px); opacity: 0; transition: all .3s ease;
+  display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 40px rgba(10,22,40,.16);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.ok { border-left: 4px solid var(--teal); }
+.toast.err { border-left: 4px solid var(--rose); }
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: none } }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-logo">
+    <div class="bicon"><i class="fa-solid fa-heart-pulse"></i></div>
+    <div class="bname">MediCore</div>
+    <div class="bsub">Hospital System</div>
+  </div>
+  
+  <form id="login-form" onsubmit="handleLogin(event)">
+    <div class="fgrid">
+      <div class="fg">
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Enter 'admin'" required />
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter 'admin'" required />
+      </div>
+    </div>
+    <button type="submit" class="btn btn-p">
+      <i class="fa-solid fa-right-to-bracket"></i> Sign In
+    </button>
+  </form>
+  
+  <div class="login-footer">
+    System access demo. Use <b>admin</b> / <b>admin</b>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- TOAST FUNCTION ---
+function toast(msg, type='ok'){
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span>${type==='ok'?'✓':'✗'}</span>${msg}`;
+  t.className = `toast show ${type}`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// --- LOGIN HANDLING ---
+function handleLogin(e) {
+  e.preventDefault();
+  
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  const btn = document.querySelector('.btn-p');
+
+  // 1. Create a list of allowed users
+  const validUsers = [
+    { username: 'babu', password: '123456' },
+    { username: 'kaali', password: '123456' },
+    { username: 'abishek', password: '123456' } // Add as many as you need!
+  ];
+
+  // 2. Check if the entered credentials match ANY user in the list
+  const isValidLogin = validUsers.some(u => u.username === user && u.password === pass);
+
+  // 3. Proceed if the login is valid
+  if (isValidLogin) {
+    // Show success state
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
+    btn.style.opacity = '0.8';
+    btn.disabled = true;
+    toast('Login successful! Redirecting...', 'ok');
+    
+    // Redirect to your main dashboard file after a short delay
+    setTimeout(() => {
+      window.location.href = 'Untitled-1.html'; 
+    }, 1200);
+
+  } else {
+    // Show error state
+    toast('Invalid username or password.', 'err');
+    
+    // Add a slight shake animation to the card on error
+    const card = document.querySelector('.login-card');
+    card.style.transform = 'translateX(5px)';
+    setTimeout(() => card.style.transform = 'translateX(-5px)', 100);
+    setTimeout(() => card.style.transform = 'translateX(5px)', 200);
+    setTimeout(() => card.style.transform = 'translateX(0)', 300);
+  }
+}
+</script>
+</body>
+</html>

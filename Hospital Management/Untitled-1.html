@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MediCore — Hospital Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{
+  --navy:#0a1628;--navy-mid:#112240;--navy-light:#1a3461;
+  --teal:#0e9f8c;--teal-l:#12c5ae;--teal-glow:rgba(14,159,140,.18);
+  --amber:#f59e0b;--rose:#f43f5e;--sky:#38bdf8;--violet:#8b5cf6;
+  --white:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g600:#475569;--text:#0f172a;
+  --sw:260px;--r:14px;--sh:0 4px 24px rgba(10,22,40,.10);--shl:0 8px 40px rgba(10,22,40,.16);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--g100);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--g300);border-radius:4px}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sw);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:width .3s;overflow:hidden}
+.sidebar.col{width:70px}
+.sidebar.col .brand-text,.sidebar.col .nav-item span,.sidebar.col .nsec,.sidebar.col .user-info{display:none}
+.sb-brand{display:flex;align-items:center;gap:12px;padding:26px 18px 22px;border-bottom:1px solid rgba(255,255,255,.07)}
+.bicon{width:40px;height:40px;background:linear-gradient(135deg,var(--teal),var(--teal-l));border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;flex-shrink:0;box-shadow:0 0 20px var(--teal-glow)}
+.bname{font-family:'Syne',sans-serif;font-weight:800;color:#fff;font-size:17px;line-height:1}
+.bsub{font-size:10px;color:var(--g400);letter-spacing:1px;text-transform:uppercase}
+.nav-links{list-style:none;padding:14px 10px;flex:1;overflow-y:auto}
+.nsec{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);padding:14px 10px 5px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:rgba(255,255,255,.5);cursor:pointer;font-size:14px;font-weight:400;transition:all .2s;white-space:nowrap;border:1px solid transparent}
+.nav-item i{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:linear-gradient(135deg,rgba(14,159,140,.25),rgba(14,159,140,.08));color:var(--teal-l);border-color:rgba(14,159,140,.2)}
+.sb-foot{padding:14px 10px;border-top:1px solid rgba(255,255,255,.07)}
+.ubadge{display:flex;align-items:center;gap:10px}
+.uav{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--sky));display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+.uname{display:block;color:#fff;font-size:13px;font-weight:500}
+.urole{display:block;color:var(--g400);font-size:10px}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;transition:margin-left .3s}
+.topbar{background:#fff;border-bottom:1px solid var(--g200);padding:0 24px;height:64px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.menu-btn{background:none;border:none;cursor:pointer;color:var(--g600);font-size:18px;padding:6px}
+.ptitle{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--navy);flex:1}
+.dbadge{font-size:12px;color:var(--g600);background:var(--g100);padding:6px 12px;border-radius:20px;display:flex;gap:6px;align-items:center}
+.nbell{position:relative;cursor:pointer;color:var(--g600);font-size:18px}
+.ndot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:var(--rose);border-radius:50%;border:2px solid #fff}
+.content{padding:26px;flex:1}
+
+/* ── PAGES ── */
+.page{display:none;animation:slideUp .4s ease both}
+.page.active{display:block}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:26px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
+.scard{background:#fff;border-radius:var(--r);padding:22px;display:flex;align-items:center;gap:16px;box-shadow:var(--sh);border:1px solid var(--g200);transition:transform .2s,box-shadow .2s;animation:slideUp .4s ease both}
+.scard:hover{transform:translateY(-3px);box-shadow:var(--shl)}
+.scard:nth-child(1){animation-delay:.05s}.scard:nth-child(2){animation-delay:.1s}.scard:nth-child(3){animation-delay:.15s}.scard:nth-child(4){animation-delay:.2s}
+.sicon{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.si-t{background:rgba(14,159,140,.1);color:var(--teal)}
+.si-n{background:rgba(10,22,40,.08);color:var(--navy)}
+.si-a{background:rgba(245,158,11,.1);color:var(--amber)}
+.si-r{background:rgba(244,63,94,.1);color:var(--rose)}
+.slbl{font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.sval{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--navy)}
+
+/* ── QUICK ACTIONS ── */
+.qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px}
+@media(max-width:900px){.qgrid{grid-template-columns:repeat(3,1fr)}}
+.qcard{background:#fff;border-radius:var(--r);padding:20px 14px;text-align:center;border:1.5px solid var(--g200);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:10px;animation:slideUp .4s ease both}
+.qcard:hover{border-color:var(--teal);box-shadow:0 4px 20px var(--teal-glow);transform:translateY(-2px)}
+.qcard i{font-size:24px;color:var(--teal)}.qcard span{font-size:13px;font-weight:500;color:var(--navy)}
+
+/* ── CARD ── */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--g200);overflow:hidden;animation:slideUp .4s ease both}
+.card-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--g200);flex-wrap:wrap;gap:10px}
+.card-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--teal)}
+.card-actions{display:flex;gap:10px;align-items:center}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{background:var(--g100);color:var(--g600);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.8px;padding:12px 16px;text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--g200);transition:background .15s}
+tbody tr:hover{background:#f8fafc}
+tbody td{padding:13px 16px;vertical-align:middle}
+tbody tr:last-child{border-bottom:none}
+.empty-row td{text-align:center;padding:40px;color:var(--g400);font-size:14px}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.bg{background:rgba(16,185,129,.12);color:#059669}
+.ba{background:rgba(245,158,11,.12);color:#d97706}
+.br{background:rgba(244,63,94,.12);color:#e11d48}
+.bb{background:rgba(56,189,248,.12);color:#0284c7}
+.bv{background:rgba(139,92,246,.12);color:#7c3aed}
+.bn{background:rgba(10,22,40,.08);color:var(--navy)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+.btn-p{background:var(--teal);color:#fff}.btn-p:hover{background:var(--teal-l);box-shadow:0 4px 16px var(--teal-glow)}
+.btn-s{background:var(--g100);color:var(--g600);border:1px solid var(--g200)}.btn-s:hover{background:var(--g200)}
+.btn-d{background:rgba(244,63,94,.1);color:var(--rose);border:1px solid rgba(244,63,94,.2)}.btn-d:hover{background:rgba(244,63,94,.2)}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
+.btn-ic{padding:7px 10px}
+
+/* ── SEARCH ── */
+.search{display:flex;align-items:center;gap:8px;background:var(--g100);border:1.5px solid var(--g200);border-radius:9px;padding:7px 13px;min-width:220px}
+.search i{color:var(--g400);font-size:13px}
+.search input{background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--text);width:100%}
+
+/* ── FORMS ── */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.fgrid{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:5px}.fg.full{grid-column:1/-1}
+label{font-size:11px;font-weight:600;color:var(--g600);text-transform:uppercase;letter-spacing:.6px}
+input,select,textarea{padding:10px 13px;border:1.5px solid var(--g200);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);transition:border-color .2s,box-shadow .2s;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow)}
+textarea{resize:vertical;min-height:80px}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(10,22,40,.55);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.mbox{background:#fff;border-radius:18px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .3s ease;margin:16px}
+.mhd{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid var(--g200)}
+.mhd h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--navy)}
+.mclose{background:none;border:none;cursor:pointer;color:var(--g400);font-size:18px;transition:color .2s}.mclose:hover{color:var(--rose)}
+.mbody{padding:22px}
+.mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:13px 18px;border-radius:12px;font-size:13.5px;box-shadow:var(--shl);z-index:300;transform:translateY(80px);opacity:0;transition:all .3s ease;display:flex;align-items:center;gap:10px;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left:4px solid var(--teal)}
+.toast.err{border-left:4px solid var(--rose)}
+
+/* ── MISC ── */
+.id-chip{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;background:var(--g100);color:var(--g600);border:1px solid var(--g200);padding:3px 8px;border-radius:6px;letter-spacing:.4px}
+.av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--sky));color:#fff;font-weight:700;font-size:13px;display:inline-grid;place-items:center;margin-right:8px;flex-shrink:0}
+.av.doc{background:linear-gradient(135deg,var(--navy-light),var(--navy))}
+.row-flex{display:flex;align-items:center}
+.sec-lbl{font-size:12px;color:var(--g400);margin-bottom:16px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sb">
+  <div class="sb-brand">
+    <div class="bicon"><i class="fa-solid fa-heart-pulse"></i></div>
+    <div class="brand-text">
+      <div class="bname">MediCore</div>
+      <div class="bsub">Hospital System</div>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li class="nsec">Main</li>
+    <li><div class="nav-item active" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></div></li>
+    <li><div class="nav-item" data-page="patients"><i class="fa-solid fa-user-injured"></i><span>Patients</span></div></li>
+    <li><div class="nav-item" data-page="doctors"><i class="fa-solid fa-user-doctor"></i><span>Doctors</span></div></li>
+    <li class="nsec">Operations</li>
+    <li><div class="nav-item" data-page="appointments"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></div></li>
+    <li><div class="nav-item" data-page="records"><i class="fa-solid fa-file-medical"></i><span>Medical Records</span></div></li>
+    <li><div class="nav-item" data-page="billing"><i class="fa-solid fa-file-invoice-dollar"></i><span>Billing</span></div></li>
+  </ul>
+  <div class="sb-foot">
+    <div class="ubadge">
+      <div class="uav">A</div>
+      <div class="user-info"><span class="uname">Admin</span><span class="urole">Super Admin</span></div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="main">
+  <header class="topbar">
+    <button class="menu-btn" onclick="toggleSb()"><i class="fa-solid fa-bars"></i></button>
+    <div class="ptitle" id="ptitle">Dashboard</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="dbadge"><i class="fa-regular fa-calendar"></i><span id="today"></span></div>
+      <div class="nbell"><i class="fa-regular fa-bell"></i><span class="ndot"></span></div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats">
+        <div class="scard"><div class="sicon si-t"><i class="fa-solid fa-user-injured"></i></div><div><div class="slbl">Total Patients</div><div class="sval" id="stat-pat">0</div></div></div>
+        <div class="scard"><div class="sicon si-n"><i class="fa-solid fa-user-doctor"></i></div><div><div class="slbl">Doctors</div><div class="sval" id="stat-doc">0</div></div></div>
+        <div class="scard"><div class="sicon si-a"><i class="fa-solid fa-calendar-check"></i></div><div><div class="slbl">Appointments</div><div class="sval" id="stat-apt">0</div></div></div>
+        <div class="scard"><div class="sicon si-r"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><div class="slbl">Pending Bills</div><div class="sval" id="stat-bill">₹0</div></div></div>
+      </div>
+      <div class="sec-lbl">Quick Actions</div>
+      <div class="qgrid">
+        <div class="qcard" onclick="nav('patients')"><i class="fa-solid fa-user-plus"></i><span>Register Patient</span></div>
+        <div class="qcard" onclick="nav('appointments')"><i class="fa-solid fa-calendar-plus"></i><span>Book Appointment</span></div>
+        <div class="qcard" onclick="nav('records')"><i class="fa-solid fa-notes-medical"></i><span>Add Record</span></div>
+        <div class="qcard" onclick="nav('billing')"><i class="fa-solid fa-receipt"></i><span>Create Invoice</span></div>
+        <div class="qcard" onclick="nav('doctors')"><i class="fa-solid fa-stethoscope"></i><span>Manage Doctors</span></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Patients</div></div>
+        <div class="tw"><table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Blood Group</th><th>Registered</th></tr></thead>
+        <tbody id="dash-recent"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div class="page" id="page-patients">
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><i class="fa-solid fa-user-injured"></i> All Patients</div>
+          <div class="card-actions">
+            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="srch-pat" placeholder="Search patients…" oninput="filterTable('pat-body',this.value)"/></div>
+            <button class="btn btn-p" onclick="openPatForm()"><i class="fa-solid fa-plus"></i> Add Patient</button>
+          </div>
+        </div>
+        <div class="tw"><table><thead><tr><th>Patient ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Blood Group</th><th>Registered</th><th>Actions</th></tr></thead>
+        <tbody id="pat-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- DOCTORS -->
+    <div class="page" id="page-doctors">
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><i class="fa-solid fa-user-doctor"></i> All Doctors</div>
+          <div class="card-actions">
+            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="srch-doc" placeholder="Search doctors…" oninput="filterTable('doc-body',this.value)"/></div>
+            <button class="btn btn-p" onclick="openDocForm()"><i class="fa-solid fa-plus"></i> Add Doctor</button>
+          </div>
+        </div>
+        <div class="tw"><table><thead><tr><th>Doctor ID</th><th>Name</th><th>Specialization</th><th>Department</th><th>Phone</th><th>Experience</th><th>Actions</th></tr></thead>
+        <tbody id="doc-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- APPOINTMENTS -->
+    <div class="page" id="page-appointments">
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><i class="fa-solid fa-calendar-check"></i> Appointments</div>
+          <div class="card-actions">
+            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="srch-apt" placeholder="Search…" oninput="filterTable('apt-body',this.value)"/></div>
+            <button class="btn btn-p" onclick="openAptForm()"><i class="fa-solid fa-plus"></i> Book Appointment</button>
+          </div>
+        </div>
+        <div class="tw"><table><thead><tr><th>Apt. ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="apt-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div class="page" id="page-records">
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><i class="fa-solid fa-file-medical"></i> Medical Records</div>
+          <div class="card-actions">
+            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="srch-rec" placeholder="Search records…" oninput="filterTable('rec-body',this.value)"/></div>
+            <button class="btn btn-p" onclick="openRecForm()"><i class="fa-solid fa-plus"></i> Add Record</button>
+          </div>
+        </div>
+        <div class="tw"><table><thead><tr><th>Record ID</th><th>Patient</th><th>Doctor</th><th>Visit Date</th><th>Diagnosis</th><th>Prescription</th><th>Actions</th></tr></thead>
+        <tbody id="rec-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- BILLING -->
+    <div class="page" id="page-billing">
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><i class="fa-solid fa-file-invoice-dollar"></i> Invoices</div>
+          <div class="card-actions">
+            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="srch-bill" placeholder="Search invoices…" oninput="filterTable('bill-body',this.value)"/></div>
+            <button class="btn btn-p" onclick="openBillForm()"><i class="fa-solid fa-plus"></i> New Invoice</button>
+          </div>
+        </div>
+        <div class="tw"><table><thead><tr><th>Invoice ID</th><th>Patient</th><th>Service</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="bill-body"></tbody></table></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- MODAL -->
+<div class="overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="mbox"><div class="mhd"><h3 id="m-title"></h3><button class="mclose" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="mbody" id="m-body"></div></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STORE (in-memory database) ───────────────────────────────────
+const DB = {
+  patients: [
+    {id:'p1',pid:'PAT-A3F2',name:'Priya Sharma',age:34,gender:'Female',phone:'9876543210',blood:'B+',email:'priya@email.com',address:'12 MG Road, Chennai',date:'2026-02-10'},
+    {id:'p2',pid:'PAT-B7C1',name:'Raj Kumar',age:52,gender:'Male',phone:'9812345678',blood:'O+',email:'raj@email.com',address:'45 Anna Nagar, Chennai',date:'2026-02-18'},
+    {id:'p3',pid:'PAT-D9E4',name:'Meera Nair',age:28,gender:'Female',phone:'9856123478',blood:'A-',email:'meera@email.com',address:'7 Adyar, Chennai',date:'2026-03-01'},
+    {id:'p4',pid:'PAT-F2G8',name:'Arjun Patel',age:45,gender:'Male',phone:'9845678901',blood:'AB+',email:'arjun@email.com',address:'33 T Nagar, Chennai',date:'2026-03-08'},
+  ],
+  doctors: [
+    {id:'d1',did:'DOC-X1Y2',name:'Sarah James',spec:'Cardiology',dept:'Cardiac Dept.',phone:'9900112233',exp:14,email:'sarah@hospital.com',qual:'MBBS, MD Cardiology'},
+    {id:'d2',did:'DOC-X3Y5',name:'Vikram Rao',spec:'Neurology',dept:'Neuro Dept.',phone:'9900334455',exp:9,email:'vikram@hospital.com',qual:'MBBS, DM Neurology'},
+    {id:'d3',did:'DOC-X7Y9',name:'Ananya Menon',spec:'Pediatrics',dept:'Pediatric Dept.',phone:'9900556677',exp:6,email:'ananya@hospital.com',qual:'MBBS, MD Pediatrics'},
+  ],
+  appointments: [
+    {id:'a1',aid:'APT-001',patient:'Priya Sharma',doctor:'Sarah James',date:'2026-03-14',time:'10:00',type:'Consultation',status:'Scheduled'},
+    {id:'a2',aid:'APT-002',patient:'Raj Kumar',doctor:'Vikram Rao',date:'2026-03-15',time:'11:30',type:'Follow-up',status:'Scheduled'},
+    {id:'a3',aid:'APT-003',patient:'Meera Nair',doctor:'Ananya Menon',date:'2026-03-10',time:'09:00',type:'Routine Check',status:'Completed'},
+  ],
+  records: [
+    {id:'r1',rid:'REC-A1B2',patient:'Priya Sharma',doctor:'Sarah James',visit:'2026-03-10',bp:'130/85',diagnosis:'Hypertension Stage 1',prescription:'Amlodipine 5mg OD, Lifestyle changes',notes:'Follow-up in 4 weeks'},
+    {id:'r2',rid:'REC-C3D4',patient:'Raj Kumar',doctor:'Vikram Rao',visit:'2026-02-28',bp:'120/80',diagnosis:'Migraine with aura',prescription:'Sumatriptan 50mg PRN, Topiramate 25mg BD',notes:'MRI brain ordered'},
+  ],
+  billing: [
+    {id:'b1',inv:'INV-001',patient:'Priya Sharma',service:'Consultation',amount:800,method:'UPI',status:'Paid',date:'2026-03-10'},
+    {id:'b2',inv:'INV-002',patient:'Raj Kumar',service:'Lab Tests',amount:2400,method:'Cash',status:'Pending',date:'2026-03-08'},
+    {id:'b3',inv:'INV-003',patient:'Meera Nair',service:'Routine Check',amount:600,method:'Card',status:'Paid',date:'2026-03-01'},
+    {id:'b4',inv:'INV-004',patient:'Arjun Patel',service:'X-Ray / Scan',amount:1800,method:'Insurance',status:'Pending',date:'2026-03-08'},
+  ]
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,7).toUpperCase();
+const av   = (name,cls='') => `<span class="av ${cls}">${(name||'?')[0].toUpperCase()}</span>`;
+const idChip = v => `<span class="id-chip">${v}</span>`;
+
+const BLOOD_BADGES = {
+  'A+':'bb','A-':'bb','B+':'bv','B-':'bv','O+':'bg','O-':'bg','AB+':'br','AB-':'br'
+};
+const STATUS_BADGE = {Scheduled:'bb',Completed:'bg',Cancelled:'br','No Show':'ba'};
+
+function toast(msg, type='ok'){
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span>${type==='ok'?'✓':'✗'}</span>${msg}`;
+  t.className = `toast show ${type}`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+function openModal(title,html){
+  document.getElementById('m-title').textContent = title;
+  document.getElementById('m-body').innerHTML = html;
+  document.getElementById('modal').style.display = 'flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none'}
+
+function filterTable(tbodyId, q){
+  document.querySelectorAll(`#${tbodyId} tr`).forEach(r=>{
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function toggleSb(){
+  document.getElementById('sb').classList.toggle('col');
+  document.getElementById('main').style.marginLeft =
+    document.getElementById('sb').classList.contains('col') ? '70px' : 'var(--sw)';
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────
+const TITLES = {dashboard:'Dashboard',patients:'Patient Management',doctors:'Doctor Management',appointments:'Appointment Booking',records:'Medical Records',billing:'Billing & Invoicing'};
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  document.getElementById('ptitle').textContent = TITLES[page];
+  const renders = {patients:renderPatients,doctors:renderDoctors,appointments:renderAppointments,records:renderRecords,billing:renderBilling,dashboard:renderDashboard};
+  renders[page]&&renders[page]();
+}
+
+document.querySelectorAll('.nav-item').forEach(el=>{
+  el.addEventListener('click',()=>nav(el.dataset.page));
+});
+
+// ─── DATE ────────────────────────────────────────────────────────
+document.getElementById('today').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+
+// ─── DASHBOARD ───────────────────────────────────────────────────
+function renderDashboard(){
+  document.getElementById('stat-pat').textContent = DB.patients.length;
+  document.getElementById('stat-doc').textContent = DB.doctors.length;
+  document.getElementById('stat-apt').textContent = DB.appointments.length;
+  const pending = DB.billing.filter(b=>b.status==='Pending').reduce((s,b)=>s+b.amount,0);
+  document.getElementById('stat-bill').textContent = '₹'+pending.toLocaleString('en-IN');
+  const recent = DB.patients.slice(-4).reverse();
+  document.getElementById('dash-recent').innerHTML = recent.map(p=>`
+    <tr>
+      <td>${idChip(p.pid)}</td>
+      <td>${av(p.name)}${p.name}</td>
+      <td>${p.age}</td>
+      <td><span class="badge ${BLOOD_BADGES[p.blood]||'bb'}">${p.blood}</span></td>
+      <td style="font-size:12px;color:var(--g400)">${p.date}</td>
+    </tr>`).join('') || `<tr class="empty-row"><td colspan="5"><i class="fa-solid fa-user-slash"></i> No patients yet</td></tr>`;
+}
+
+// ─── PATIENTS ────────────────────────────────────────────────────
+function renderPatients(){
+  const tb = document.getElementById('pat-body');
+  if(!DB.patients.length){tb.innerHTML='<tr class="empty-row"><td colspan="8"><i class="fa-solid fa-user-slash"></i> No patients registered.</td></tr>';return}
+  tb.innerHTML = DB.patients.map(p=>`
+    <tr>
+      <td>${idChip(p.pid)}</td>
+      <td class="row-flex">${av(p.name)}${p.name}</td>
+      <td>${p.age}</td>
+      <td>${p.gender}</td>
+      <td>${p.phone}</td>
+      <td><span class="badge ${BLOOD_BADGES[p.blood]||'bb'}">${p.blood}</span></td>
+      <td style="font-size:12px;color:var(--g400)">${p.date}</td>
+      <td>
+        <button class="btn btn-sm btn-s btn-ic" title="Edit" onclick="editPat('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-d btn-ic" title="Delete" onclick="delPat('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function patForm(p={}){
+  return `<div class="fgrid">
+    <div class="fg"><label>Full Name</label><input id="pf-name" value="${p.name||''}" placeholder="e.g. Priya Sharma"/></div>
+    <div class="fg"><label>Age</label><input id="pf-age" type="number" value="${p.age||''}" placeholder="35"/></div>
+    <div class="fg"><label>Gender</label><select id="pf-gen">
+      <option ${p.gender==='Male'?'selected':''}>Male</option>
+      <option ${p.gender==='Female'?'selected':''}>Female</option>
+      <option ${p.gender==='Other'?'selected':''}>Other</option>
+    </select></div>
+    <div class="fg"><label>Blood Group</label><select id="pf-blood">
+      ${['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b=>`<option ${p.blood===b?'selected':''}>${b}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Phone</label><input id="pf-ph" value="${p.phone||''}" placeholder="+91 98XXXXXXXX"/></div>
+    <div class="fg"><label>Email</label><input id="pf-em" value="${p.email||''}" placeholder="patient@email.com"/></div>
+    <div class="fg full"><label>Address</label><textarea id="pf-addr">${p.address||''}</textarea></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-s" onclick="closeModal()">Cancel</button><span id="pf-save"></span></div>`;
+}
+
+function openPatForm(id=null){
+  const p = id ? DB.patients.find(x=>x.id===id) : {};
+  openModal(id?'Edit Patient':'Register New Patient', patForm(p||{}));
+  document.getElementById('pf-save').innerHTML =
+    `<button class="btn btn-p" onclick="${id?`savePat('${id}')`:'addPat()'}"><i class="fa-solid fa-save"></i> ${id?'Update':'Register'}</button>`;
+}
+
+function collectPat(){
+  return {
+    name:document.getElementById('pf-name').value.trim(),
+    age:+document.getElementById('pf-age').value,
+    gender:document.getElementById('pf-gen').value,
+    blood:document.getElementById('pf-blood').value,
+    phone:document.getElementById('pf-ph').value.trim(),
+    email:document.getElementById('pf-em').value.trim(),
+    address:document.getElementById('pf-addr').value.trim()
+  };
+}
+
+function addPat(){
+  const d = collectPat();
+  if(!d.name||!d.age) return toast('Name and age required','err');
+  DB.patients.push({...d, id:'p'+uid(), pid:'PAT-'+uid(), date:new Date().toISOString().slice(0,10)});
+  closeModal(); toast('Patient registered!'); renderPatients(); renderDashboard();
+}
+function savePat(id){
+  const d = collectPat(); const i = DB.patients.findIndex(x=>x.id===id);
+  if(i>-1) Object.assign(DB.patients[i],d);
+  closeModal(); toast('Patient updated!'); renderPatients();
+}
+function editPat(id){openPatForm(id)}
+function delPat(id){
+  if(!confirm('Delete this patient?')) return;
+  DB.patients = DB.patients.filter(p=>p.id!==id);
+  toast('Patient deleted','err'); renderPatients(); renderDashboard();
+}
+
+// ─── DOCTORS ─────────────────────────────────────────────────────
+const SPECS=['Cardiology','Neurology','Orthopedics','Pediatrics','Dermatology','Radiology','ENT','Oncology','Gynecology','General Surgery','Internal Medicine','Psychiatry'];
+
+function renderDoctors(){
+  const tb = document.getElementById('doc-body');
+  if(!DB.doctors.length){tb.innerHTML='<tr class="empty-row"><td colspan="7"><i class="fa-solid fa-user-doctor"></i> No doctors added.</td></tr>';return}
+  tb.innerHTML = DB.doctors.map(d=>`
+    <tr>
+      <td>${idChip(d.did)}</td>
+      <td class="row-flex">${av(d.name,'doc')}Dr. ${d.name}</td>
+      <td><span class="badge bb">${d.spec}</span></td>
+      <td>${d.dept}</td>
+      <td>${d.phone}</td>
+      <td>${d.exp} yrs</td>
+      <td>
+        <button class="btn btn-sm btn-s btn-ic" onclick="editDoc('${d.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-d btn-ic" onclick="delDoc('${d.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function docForm(d={}){
+  return `<div class="fgrid">
+    <div class="fg"><label>Full Name</label><input id="df-name" value="${d.name||''}" placeholder="Dr. Sarah James"/></div>
+    <div class="fg"><label>Specialization</label><select id="df-spec">
+      ${SPECS.map(s=>`<option ${d.spec===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Department</label><input id="df-dept" value="${d.dept||''}" placeholder="Cardiac Dept."/></div>
+    <div class="fg"><label>Experience (yrs)</label><input id="df-exp" type="number" value="${d.exp||''}" placeholder="10"/></div>
+    <div class="fg"><label>Phone</label><input id="df-ph" value="${d.phone||''}" placeholder="+91 99XXXXXXXX"/></div>
+    <div class="fg"><label>Email</label><input id="df-em" value="${d.email||''}" placeholder="doctor@hospital.com"/></div>
+    <div class="fg full"><label>Qualifications</label><textarea id="df-qual">${d.qual||''}</textarea></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-s" onclick="closeModal()">Cancel</button><span id="df-save"></span></div>`;
+}
+
+function openDocForm(id=null){
+  const d = id ? DB.doctors.find(x=>x.id===id) : {};
+  openModal(id?'Edit Doctor':'Add New Doctor', docForm(d||{}));
+  document.getElementById('df-save').innerHTML =
+    `<button class="btn btn-p" onclick="${id?`saveDoc('${id}')`:'addDoc()'}"><i class="fa-solid fa-save"></i> ${id?'Update':'Add Doctor'}</button>`;
+}
+
+function collectDoc(){
+  return {
+    name:document.getElementById('df-name').value.trim(),
+    spec:document.getElementById('df-spec').value,
+    dept:document.getElementById('df-dept').value.trim(),
+    exp:+document.getElementById('df-exp').value,
+    phone:document.getElementById('df-ph').value.trim(),
+    email:document.getElementById('df-em').value.trim(),
+    qual:document.getElementById('df-qual').value.trim()
+  };
+}
+function addDoc(){
+  const d = collectDoc();
+  if(!d.name) return toast('Doctor name required','err');
+  DB.doctors.push({...d, id:'d'+uid(), did:'DOC-'+uid()});
+  closeModal(); toast('Doctor added!'); renderDoctors(); renderDashboard();
+}
+function saveDoc(id){
+  const d = collectDoc(); const i = DB.doctors.findIndex(x=>x.id===id);
+  if(i>-1) Object.assign(DB.doctors[i],d);
+  closeModal(); toast('Doctor updated!'); renderDoctors();
+}
+function editDoc(id){openDocForm(id)}
+function delDoc(id){
+  if(!confirm('Remove this doctor?')) return;
+  DB.doctors = DB.doctors.filter(d=>d.id!==id);
+  toast('Doctor removed','err'); renderDoctors(); renderDashboard();
+}
+
+// ─── APPOINTMENTS ────────────────────────────────────────────────
+function renderAppointments(){
+  const tb = document.getElementById('apt-body');
+  if(!DB.appointments.length){tb.innerHTML='<tr class="empty-row"><td colspan="8"><i class="fa-solid fa-calendar-xmark"></i> No appointments yet.</td></tr>';return}
+  tb.innerHTML = DB.appointments.map(a=>`
+    <tr>
+      <td>${idChip(a.aid)}</td>
+      <td>${av(a.patient)}${a.patient}</td>
+      <td>${av(a.doctor,'doc')}Dr. ${a.doctor}</td>
+      <td>${a.date}</td>
+      <td>${a.time}</td>
+      <td><span class="badge bn">${a.type}</span></td>
+      <td><span class="badge ${STATUS_BADGE[a.status]||'bb'}">${a.status}</span></td>
+      <td>
+        <button class="btn btn-sm btn-s" onclick="cycleStatus('${a.id}')"><i class="fa-solid fa-rotate"></i></button>
+        <button class="btn btn-sm btn-d btn-ic" onclick="delApt('${a.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function aptForm(){
+  const patOpts = DB.patients.map(p=>`<option>${p.name}</option>`).join('');
+  const docOpts = DB.doctors.map(d=>`<option data-dept="${d.dept}">${d.name}</option>`).join('');
+  const today = new Date().toISOString().slice(0,10);
+  return `<div class="fgrid">
+    <div class="fg"><label>Patient</label><select id="af-pat">${patOpts||'<option>No patients added</option>'}</select></div>
+    <div class="fg"><label>Doctor</label><select id="af-doc" onchange="document.getElementById('af-dept').value=this.options[this.selectedIndex].dataset.dept||''">${docOpts||'<option>No doctors added</option>'}</select></div>
+    <div class="fg"><label>Department</label><input id="af-dept" placeholder="Auto-filled"/></div>
+    <div class="fg"><label>Date</label><input type="date" id="af-date" value="${today}" min="${today}"/></div>
+    <div class="fg"><label>Time</label><input type="time" id="af-time" value="10:00"/></div>
+    <div class="fg"><label>Type</label><select id="af-type">
+      ${['Consultation','Follow-up','Emergency','Routine Check'].map(t=>`<option>${t}</option>`).join('')}
+    </select></div>
+    <div class="fg full"><label>Notes</label><textarea id="af-notes" placeholder="Optional notes…"></textarea></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-s" onclick="closeModal()">Cancel</button>
+  <button class="btn btn-p" onclick="addApt()"><i class="fa-solid fa-save"></i> Book</button></div>`;
+}
+
+function openAptForm(){
+  openModal('Book New Appointment', aptForm());
+  // auto-fill dept on load
+  const sel = document.getElementById('af-doc');
+  if(sel) document.getElementById('af-dept').value = sel.options[sel.selectedIndex]?.dataset.dept||'';
+}
+
+function addApt(){
+  const body = {
+    patient:document.getElementById('af-pat').value,
+    doctor:document.getElementById('af-doc').value,
+    date:document.getElementById('af-date').value,
+    time:document.getElementById('af-time').value,
+    type:document.getElementById('af-type').value,
+    notes:document.getElementById('af-notes').value
+  };
+  if(!body.date||!body.time) return toast('Date and time required','err');
+  DB.appointments.push({...body, id:'a'+uid(), aid:'APT-'+uid(), status:'Scheduled'});
+  closeModal(); toast('Appointment booked!'); renderAppointments(); renderDashboard();
+}
+
+const STATUS_CYCLE=['Scheduled','Completed','Cancelled','No Show'];
+function cycleStatus(id){
+  const a = DB.appointments.find(x=>x.id===id); if(!a) return;
+  a.status = STATUS_CYCLE[(STATUS_CYCLE.indexOf(a.status)+1)%STATUS_CYCLE.length];
+  toast(`Status → ${a.status}`); renderAppointments();
+}
+function delApt(id){
+  if(!confirm('Delete this appointment?')) return;
+  DB.appointments = DB.appointments.filter(a=>a.id!==id);
+  toast('Appointment deleted','err'); renderAppointments(); renderDashboard();
+}
+
+// ─── RECORDS ─────────────────────────────────────────────────────
+function renderRecords(){
+  const tb = document.getElementById('rec-body');
+  if(!DB.records.length){tb.innerHTML='<tr class="empty-row"><td colspan="7"><i class="fa-solid fa-file-circle-xmark"></i> No records found.</td></tr>';return}
+  tb.innerHTML = DB.records.map(r=>`
+    <tr>
+      <td>${idChip(r.rid)}</td>
+      <td class="row-flex">${av(r.patient)}${r.patient}</td>
+      <td>${av(r.doctor,'doc')}Dr. ${r.doctor}</td>
+      <td>${r.visit}</td>
+      <td>${r.diagnosis}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--g600)">${r.prescription}</td>
+      <td>
+        <button class="btn btn-sm btn-s btn-ic" onclick="viewRec('${r.id}')"><i class="fa-solid fa-eye"></i></button>
+        <button class="btn btn-sm btn-d btn-ic" onclick="delRec('${r.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function recForm(){
+  const patOpts = DB.patients.map(p=>`<option>${p.name}</option>`).join('');
+  const docOpts = DB.doctors.map(d=>`<option>${d.name}</option>`).join('');
+  const today = new Date().toISOString().slice(0,10);
+  return `<div class="fgrid">
+    <div class="fg"><label>Patient</label><select id="rf-pat">${patOpts||'<option>No patients</option>'}</select></div>
+    <div class="fg"><label>Doctor</label><select id="rf-doc">${docOpts||'<option>No doctors</option>'}</select></div>
+    <div class="fg"><label>Visit Date</label><input type="date" id="rf-date" value="${today}"/></div>
+    <div class="fg"><label>Blood Pressure</label><input id="rf-bp" placeholder="120/80 mmHg"/></div>
+    <div class="fg full"><label>Diagnosis</label><textarea id="rf-diag" placeholder="Primary diagnosis…"></textarea></div>
+    <div class="fg full"><label>Prescription / Medications</label><textarea id="rf-pres" placeholder="Medications, dosage, duration…"></textarea></div>
+    <div class="fg full"><label>Lab Results / Notes</label><textarea id="rf-notes" placeholder="Additional notes, lab findings…"></textarea></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-s" onclick="closeModal()">Cancel</button>
+  <button class="btn btn-p" onclick="addRec()"><i class="fa-solid fa-save"></i> Save Record</button></div>`;
+}
+
+function openRecForm(){ openModal('Add Medical Record', recForm()) }
+
+function addRec(){
+  const body = {
+    patient:document.getElementById('rf-pat').value,
+    doctor:document.getElementById('rf-doc').value,
+    visit:document.getElementById('rf-date').value,
+    bp:document.getElementById('rf-bp').value,
+    diagnosis:document.getElementById('rf-diag').value,
+    prescription:document.getElementById('rf-pres').value,
+    notes:document.getElementById('rf-notes').value
+  };
+  if(!body.visit) return toast('Visit date required','err');
+  DB.records.push({...body, id:'r'+uid(), rid:'REC-'+uid()});
+  closeModal(); toast('Record saved!'); renderRecords();
+}
+
+function viewRec(id){
+  const r = DB.records.find(x=>x.id===id); if(!r) return;
+  openModal(`Record — ${r.rid}`,`
+    <div style="display:grid;gap:16px;font-size:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${[['Patient',r.patient],['Doctor','Dr. '+r.doctor],['Visit Date',r.visit],['Blood Pressure',r.bp||'—']].map(([l,v])=>`
+        <div><div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div><div>${v}</div></div>`).join('')}
+      </div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Diagnosis</div><p>${r.diagnosis||'—'}</p></div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Prescription</div><p style="white-space:pre-wrap">${r.prescription||'—'}</p></div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Notes</div><p>${r.notes||'—'}</p></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-s" onclick="closeModal()">Close</button></div>`);
+}
+function delRec(id){
+  if(!confirm('Delete this record?')) return;
+  DB.records = DB.records.filter(r=>r.id!==id);
+  toast('Record deleted','err'); renderRecords();
+}
+
+// ─── BILLING ─────────────────────────────────────────────────────
+const SERVICES=['Consultation','Emergency Care','Surgery','Lab Tests','X-Ray / Scan','Physiotherapy','Vaccination','ICU Charges','Room Charges','Pharmacy','Other'];
+
+function renderBilling(){
+  const tb = document.getElementById('bill-body');
+  if(!DB.billing.length){tb.innerHTML='<tr class="empty-row"><td colspan="8"><i class="fa-solid fa-file-invoice"></i> No invoices yet.</td></tr>';return}
+  tb.innerHTML = DB.billing.map(b=>`
+    <tr>
+      <td>${idChip(b.inv)}</td>
+      <td class="row-flex">${av(b.patient)}${b.patient}</td>
+      <td>${b.service}</td>
+      <td style="font-family:'Syne',sans-serif;font-weight:700">₹${Number(b.amount).toLocaleString('en-IN')}</td>
+      <td><span class="badge bn">${b.method}</span></td>
+      <td style="font-size:12px;color:var(--g400)">${b.date}</td>
+      <td><span class="badge ${b.status==='Paid'?'bg':'ba'}">${b.status}</span></td>
+      <td>
+        ${b.status==='Pending'?`<button class="btn btn-sm btn-s" onclick="markPaid('${b.id}')"><i class="fa-solid fa-check"></i> Paid</button>`:''}
+        <button class="btn btn-sm btn-d btn-ic" onclick="delBill('${b.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function billForm(){
+  const patOpts = DB.patients.map(p=>`<option>${p.name}</option>`).join('');
+  return `<div class="fgrid">
+    <div class="fg"><label>Patient</label><select id="bf-pat">${patOpts||'<option>No patients</option>'}</select></div>
+    <div class="fg"><label>Service</label><select id="bf-svc">${SERVICES.map(s=>`<option>${s}</option>`).join('')}</select></div>
+    <div class="fg"><label>Amount (₹)</label><input type="number" id="bf-amt" placeholder="e.g. 2500"/></div>
+    <div class="fg"><label>Payment Method</label><select id="bf-pay">
+      ${['Cash','Card','UPI','Insurance','Net Banking'].map(m=>`<option>${m}</option>`).join('')}
+    </select></div>
+    <div class="fg full"><label>Notes / Description</label><textarea id="bf-notes" placeholder="Optional notes…"></textarea></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-s" onclick="closeModal()">Cancel</button>
+  <button class="btn btn-p" onclick="addBill()"><i class="fa-solid fa-save"></i> Generate Invoice</button></div>`;
+}
+
+function openBillForm(){ openModal('Create New Invoice', billForm()) }
+
+function addBill(){
+  const body = {
+    patient:document.getElementById('bf-pat').value,
+    service:document.getElementById('bf-svc').value,
+    amount:+document.getElementById('bf-amt').value,
+    method:document.getElementById('bf-pay').value,
+    notes:document.getElementById('bf-notes').value
+  };
+  if(!body.amount) return toast('Amount is required','err');
+  DB.billing.push({...body, id:'b'+uid(), inv:'INV-'+uid(), status:'Pending', date:new Date().toISOString().slice(0,10)});
+  closeModal(); toast('Invoice created!'); renderBilling(); renderDashboard();
+}
+function markPaid(id){
+  const b = DB.billing.find(x=>x.id===id); if(b) b.status='Paid';
+  toast('Invoice marked as Paid!'); renderBilling(); renderDashboard();
+}
+function delBill(id){
+  if(!confirm('Delete this invoice?')) return;
+  DB.billing = DB.billing.filter(b=>b.id!==id);
+  toast('Invoice deleted','err'); renderBilling(); renderDashboard();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderDashboard();
+</script>
+</body>
+</html>
