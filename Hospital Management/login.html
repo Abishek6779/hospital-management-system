@@ -127,9 +127,28 @@ input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow);
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+// 1. Import Firebase tools directly from the web (CDN)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+// 2. Your exact Firebase Configuration from the screenshot
+const firebaseConfig = {
+  apiKey: "AIzaSyDm91oUmHnMmt8Ukyd3IQ-g1d4kpMfrzg0",
+  authDomain: "hos-management-9bddb.firebaseapp.com",
+  projectId: "hos-management-9bddb",
+  storageBucket: "hos-management-9bddb.firebasestorage.app",
+  messagingSenderId: "1068434362596",
+  appId: "1:1068434362596:web:ca49dbaa5fed5b8d295cf1"
+};
+
+// 3. Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 // --- TOAST FUNCTION ---
-function toast(msg, type='ok'){
+// We attach it to 'window' so it can be called from anywhere
+window.toast = function(msg, type='ok'){
   const t = document.getElementById('toast');
   t.innerHTML = `<span>${type==='ok'?'✓':'✗'}</span>${msg}`;
   t.className = `toast show ${type}`;
@@ -137,41 +156,41 @@ function toast(msg, type='ok'){
 }
 
 // --- LOGIN HANDLING ---
-function handleLogin(e) {
+// We attach this to 'window' so your HTML form's onsubmit="..." can find it
+window.handleLogin = async function(e) {
   e.preventDefault();
   
-  const user = document.getElementById('login-user').value.trim();
+  const email = document.getElementById('login-user').value.trim(); 
   const pass = document.getElementById('login-pass').value.trim();
   const btn = document.querySelector('.btn-p');
 
-  // 1. Create a list of allowed users
-  const validUsers = [
-    { username: 'babu', password: '123456' },
-    { username: 'kaali', password: '123456' },
-    { username: 'abishek', password: '123456' } // Add as many as you need!
-  ];
+  // Show loading state
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
+  btn.style.opacity = '0.8';
+  btn.disabled = true;
 
-  // 2. Check if the entered credentials match ANY user in the list
-  const isValidLogin = validUsers.some(u => u.username === user && u.password === pass);
-
-  // 3. Proceed if the login is valid
-  if (isValidLogin) {
-    // Show success state
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
-    btn.style.opacity = '0.8';
-    btn.disabled = true;
-    toast('Login successful! Redirecting...', 'ok');
+  try {
+    // 4. Try to log in with Firebase
+    await signInWithEmailAndPassword(auth, email, pass);
     
-    // Redirect to your main dashboard file after a short delay
+    // If it succeeds, redirect!
+    toast('Login successful! Redirecting...', 'ok');
     setTimeout(() => {
       window.location.href = 'mainpage.html'; 
     }, 1200);
 
-  } else {
-    // Show error state
-    toast('Invalid username or password.', 'err');
+  } catch (error) {
+    console.error("Firebase Login Error:", error.code, error.message);
     
-    // Add a slight shake animation to the card on error
+    // Reset button
+    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign In';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+    
+    // Show error toast
+    toast('Invalid email or password.', 'err');
+    
+    // Shake animation
     const card = document.querySelector('.login-card');
     card.style.transform = 'translateX(5px)';
     setTimeout(() => card.style.transform = 'translateX(-5px)', 100);
